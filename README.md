@@ -1,78 +1,160 @@
-# Projeto de Gestão de TCCs
+# SigaTCC — Sistema de Gestão de TCCs
 
-Este projeto é uma API REST para gerenciamento de Trabalhos de Conclusão de Curso (TCC), Alunos e Professores. Ele serve como base para o desenvolvimento de um frontend na tecnologia de sua escolha. O backend do projeto já está pronto e foi desenvolvido usando Django REST Framework - DRF.
+Sistema para gerenciamento de Trabalhos de Conclusão de Curso (TCCs), desenvolvido com **Django REST Framework** no backend e **Vue.js 3** no frontend.
 
-## Material de Apoio
+## Tecnologias
 
-* [django-rest-framework](https://www.django-rest-framework.org/)
+| Camada | Tecnologia |
+|--------|------------|
+| Backend | Python 3.12, Django 6, Django REST Framework |
+| Frontend | Vue.js 3, Vue Router, Vite, Chart.js |
+| Banco de dados | SQLite |
+| Containerização | Docker, Docker Compose |
 
-## Requisitos do Trabalho
+## Funcionalidades implementadas
 
-1. **Tecnologia Frontend:**
-    * Escolha livre: React, Vue.js, Angular, Flutter, etc.
-2. **Funcionalidades:**
-    * Listagem e busca de **Alunos**, **Professores**, **Cursos**, **Departamentos**, **Unidades Acadêmicas** e **TCCs**.
-    * Cadastramento de TCCS
-    * Interface para Alterar o Status
-3. **Gestão de Arquivos (Upload):**
-    * No cadastro de TCC, o aluno deve ser capaz de fazer o **upload de um arquivo PDF** do trabalho.
-    * O frontend deve exibir um link para download/visualização do arquivo na listagem.
-4. **Dashboard de Estatísticas:**
-    * Implementar uma tela ou seção de **Dashboard** que consuma o endpoint de estatísticas e exiba os dados (preferencialmente usando gráficos).
-5. **Não é necessário controle de permissão ou login.**
-6. **Entrega:**
-    * Enviar o link do github do código Backend e Frontend via **Campus Virtual**.
+- **Dashboard** com gráficos de TCCs por status e por orientador (Chart.js)
+- **Listagem e busca** de TCCs com filtros por título, aluno e status
+- **Cadastro de TCC** com upload de arquivo PDF
+- **Visualização e download** do arquivo PDF na listagem
+- **Listagem** de Alunos, Professores, Cursos, Departamentos e Unidades Acadêmicas
+
+---
+
+## Como rodar com Docker (recomendado)
+
+Pré-requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e em execução.
+
+```bash
+# Sobe o backend (porta 8000) e o frontend (porta 5173)
+docker compose up --build
+```
+
+Na primeira vez, popule o banco com dados de exemplo:
+
+```bash
+docker compose exec backend python load.py
+```
+
+Acesse:
+- **Frontend:** http://localhost:5173
+- **API:** http://localhost:8000/api/
+
+Para parar:
+
+```bash
+docker compose down
+```
+
+---
+
+## Como rodar sem Docker
+
+### Backend
+
+```bash
+# 1. Crie e ative o ambiente virtual
+python -m venv venv
+
+# Linux/macOS:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
+# 2. Instale as dependências
+pip install -r requirements.txt
+
+# 3. Rode as migrações
+python manage.py migrate
+
+# 4. Popule o banco com dados de exemplo
+python load.py
+
+# 5. Inicie o servidor
+python manage.py runserver
+```
+
+API disponível em: http://127.0.0.1:8000/api/
+
+### Frontend
+
+```bash
+cd frontend
+
+# 1. Copie o arquivo de variáveis de ambiente
+cp .env.example .env
+# O arquivo já aponta para http://127.0.0.1:8000/api por padrão
+
+# 2. Instale as dependências
+npm install
+
+# 3. Inicie o servidor de desenvolvimento
+npm run dev
+```
+
+Frontend disponível em: http://localhost:5173
+
+---
+
+## Como popular dados
+
+O script `load.py` na raiz do projeto limpa e repopula o banco com dados fictícios (unidades acadêmicas, departamentos, cursos, professores, alunos e TCCs).
+
+```bash
+# Sem Docker:
+python load.py
+
+# Com Docker (container em execução):
+docker compose exec backend python load.py
+```
+
+---
 
 ## Endpoints da API
 
-* **Unidades Acadêmicas:** `http://127.0.0.1:8000/api/unidades-academicas/`
-* **Departamentos:** `http://127.0.0.1:8000/api/departamentos/`
-* **Cursos:** `http://127.0.0.1:8000/api/cursos/`
-* **Alunos:** `http://127.0.0.1:8000/api/alunos/`
-* **Professores:** `http://127.0.0.1:8000/api/professores/`
-* **TCCs:** `http://127.0.0.1:8000/api/tccs/`
-* **Estatísticas (Dashboard):** `http://127.0.0.1:8000/api/tccs/estatisticas/`
+| Recurso | URL |
+|---------|-----|
+| Unidades Acadêmicas | `GET /api/unidades-academicas/` |
+| Departamentos | `GET /api/departamentos/` |
+| Cursos | `GET /api/cursos/` |
+| Alunos | `GET /api/alunos/` |
+| Professores | `GET /api/professores/` |
+| TCCs | `GET /api/tccs/` |
+| Estatísticas (Dashboard) | `GET /api/tccs/estatisticas/` |
 
-### Detalhes do Endpoint de TCCs
+### Status dos TCCs
 
-Ao enviar um TCC via POST/PUT, utilize `multipart/form-data` para o campo `arquivo`.
-Status disponíveis:
+| Código | Descrição |
+|--------|-----------|
+| `0` | Em Elaboração |
+| `1` | Enviado |
+| `2` | Aprovado |
+| `3` | Reprovado |
 
-* `0`: Em Elaboração
-* `1`: Enviado
-* `2`: Aprovado
-* `3`: Reprovado
+### Upload de arquivo
 
-### Estrutura do JSON de Estatísticas
+O campo `arquivo` (PDF) deve ser enviado via `multipart/form-data` no cadastro de TCC.
 
-O endpoint `/api/tccs/estatisticas/` retorna:
+### Estrutura do endpoint de estatísticas
 
 ```json
 {
     "total_geral": 10,
     "por_status": {
         "Aprovado": 3,
-        "Em Elaboração": 2,
-        ...
+        "Em Elaboração": 2
     },
     "por_orientador": {
-        "Prof. Dr. Ricardo": 4,
-        ...
+        "Prof. Ana Paula Ribeiro": 4
     }
 }
 ```
 
-## Como Executar
+---
 
-1. `python -m venv venv`
-2. `source venv/bin/activate` Linux
-3. `venv\Scripts\activate` Windows
-4. `pip install -r requirements.txt`
-5. `python manage.py makemigrations core`
-6. `python manage.py migrate`
-7. `python load.py` (para popular dados iniciais)
-8. `python manage.py runserver`
+## Material de apoio
 
-Para visualização das informações acesse os endpoints, como o exemplo: [http://127.0.0.1:8000/api/](http://127.0.0.1:8000/api/).
-
-**Dica para o Frontend:** Lembre-se que para o upload de arquivos você não envia um JSON comum, mas sim um objeto `FormData`.
+- [Django REST Framework](https://www.django-rest-framework.org/)
+- [Vue.js 3](https://vuejs.org/)
+- [Vite](https://vite.dev/)
+- [Chart.js](https://www.chartjs.org/)
