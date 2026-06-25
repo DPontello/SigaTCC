@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { getFileUrl } from "../services/api";
 import { tccApi } from "../services/tccApi";
 
 const statusOptions = [
@@ -128,6 +129,7 @@ onMounted(loadAll);
                         <th>Orientador</th>
                         <th>Tipo</th>
                         <th>Status</th>
+                        <th>Arquivo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,6 +144,18 @@ onMounted(loadAll);
                                     {{ opt.label }}
                                 </option>
                             </select>
+                        </td>
+                        <td>
+                            <a
+                                v-if="tcc.arquivo"
+                                class="file-link"
+                                :href="getFileUrl(tcc.arquivo)"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Abrir PDF
+                            </a>
+                            <span v-else>-</span>
                         </td>
                     </tr>
                 </tbody>
@@ -211,5 +225,14 @@ td select {
 td select:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.file-link {
+    color: #1f66d1;
+    font-weight: 700;
+}
+
+.file-link:hover {
+    text-decoration: underline;
 }
 </style>
