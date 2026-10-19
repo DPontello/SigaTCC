@@ -1,6 +1,31 @@
 # SigaTCC — Sistema de Gestão de TCCs
 
-Sistema para gerenciamento de Trabalhos de Conclusão de Curso (TCCs), desenvolvido com **Django REST Framework** no backend e **Vue.js 3** no frontend.
+[![CI](https://github.com/DPontello/SigaTCC/actions/workflows/ci.yml/badge.svg)](https://github.com/DPontello/SigaTCC/actions/workflows/ci.yml)
+
+## O que é
+
+Sistema para gerenciamento de Trabalhos de Conclusão de Curso (TCCs): cadastro com upload do PDF, busca, controle de status (Em Elaboração → Enviado → Aprovado/Reprovado) e um dashboard com indicadores por status, tipo, curso, orientador e departamento.
+
+Desenvolvido com **Django REST Framework** no backend e **Vue.js 3** no frontend, como projeto acadêmico em equipe na UFLA.
+
+![Dashboard do SigaTCC](docs/img/dashboard.png)
+
+<details>
+<summary>Tela de listagem e busca de TCCs</summary>
+
+![Listagem de TCCs](docs/img/tccs.png)
+
+</details>
+
+> Os dados das imagens são fictícios, gerados pelo script `load.py`.
+
+## Equipe
+
+| Pessoa | Principais contribuições |
+|--------|--------------------------|
+| [Hugo Pontello](https://github.com/DPontello) | Modelagem do banco e API REST (models, serializers, viewsets, endpoint de estatísticas), script de carga de dados, containerização com Docker, testes automatizados e CI |
+| [João Guilherme](https://github.com/joaogsribeiro) | Frontend Vue (base, dashboard com Chart.js, formulário com upload de PDF) |
+| [Ruan Pablo](https://github.com/FixRuan) | Telas de listagem de TCCs e das entidades (alunos, professores, cursos, departamentos, unidades) |
 
 ## Tecnologias
 
@@ -8,8 +33,9 @@ Sistema para gerenciamento de Trabalhos de Conclusão de Curso (TCCs), desenvolv
 |--------|------------|
 | Backend | Python 3.12, Django 6, Django REST Framework |
 | Frontend | Vue.js 3, Vue Router, Vite, Chart.js |
-| Banco de dados | SQLite |
+| Banco de dados | SQLite (modelo relacional com 6 entidades) |
 | Containerização | Docker, Docker Compose |
+| Qualidade | Testes de API com `APITestCase` (DRF), GitHub Actions (CI) |
 
 ## Funcionalidades implementadas
 
@@ -107,6 +133,39 @@ python load.py
 # Com Docker (container em execução):
 docker compose exec backend python load.py
 ```
+
+---
+
+## Exemplo de uso
+
+Com o backend rodando e o banco populado (`python load.py`):
+
+```bash
+curl http://127.0.0.1:8000/api/tccs/estatisticas/
+```
+
+Resposta (trecho real com os dados de exemplo):
+
+```json
+{
+  "total_geral": 100,
+  "por_status": { "Em Elaboração": 17, "Enviado": 31, "Aprovado": 25, "Reprovado": 27 },
+  "por_tipo": { "Artigo": 29, "Monografia": 19, "Relatório de Estágio": 21, "Relatório Técnico": 31 },
+  "por_idioma": { "Inglês": 50, "Português": 50 }
+}
+```
+
+Busca por título ou resumo: `GET /api/tccs/?search=Django`
+
+---
+
+## Testes
+
+```bash
+python manage.py test core -v 2
+```
+
+Os testes cobrem listagem, busca, criação (com status padrão), validação de campos obrigatórios, alteração de status e as agregações do endpoint de estatísticas. Eles rodam automaticamente no GitHub Actions a cada push, junto com o build do frontend.
 
 ---
 
